@@ -49,6 +49,23 @@ const App: React.FC = () => {
     handleArtifactSelect(newArtifact);
   }, [curatorCache]);
 
+  const handleArtifactDelete = (id: string) => {
+    const artifactToDelete = artifacts.find(a => a.id === id);
+    
+    if (artifactToDelete?.fileUrl) {
+      URL.revokeObjectURL(artifactToDelete.fileUrl);
+    }
+
+    const newArtifacts = artifacts.filter(a => a.id !== id);
+    setArtifacts(newArtifacts);
+
+    // If the deleted artifact was selected, switch to the first available one
+    if (currentArtifact.id === id) {
+      const nextArtifact = newArtifacts.length > 0 ? newArtifacts[0] : ARTIFACTS[0];
+      handleArtifactSelect(nextArtifact);
+    }
+  };
+
   const handleAskCurator = async () => {
     if (curatorCache[currentArtifact.id]) {
       setCuratorResponse(curatorCache[currentArtifact.id]);
@@ -88,6 +105,7 @@ const App: React.FC = () => {
           currentArtifactId={currentArtifact.id} 
           onSelect={handleArtifactSelect} 
           onUpload={handleFileUpload}
+          onDelete={handleArtifactDelete}
         />
       </div>
 
