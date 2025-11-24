@@ -1,6 +1,7 @@
 import React from 'react';
 import { CameraState, Artifact } from '../types';
-import { DEFAULT_CAMERA_STATE } from '../constants';
+import ScreenshotButton from './ScreenshotButton';
+import ScreenshotPreview from './ScreenshotPreview';
 
 interface ControlsPanelProps {
   cameraState: CameraState;
@@ -11,6 +12,8 @@ interface ControlsPanelProps {
   curatorLoading: boolean;
   artifact: Artifact;
   curatorResponse: string | null;
+  onScreenshot: () => void | Promise<void>;
+  screenshot: string | null;
 }
 
 const Slider: React.FC<{
@@ -51,16 +54,18 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
   onAskCurator,
   curatorLoading,
   artifact,
-  curatorResponse
+  curatorResponse,
+  onScreenshot,
+  screenshot
 }) => {
-  
+
   const handleSliderChange = (axis: keyof CameraState, value: number) => {
     setCameraState({ ...cameraState, [axis]: value });
   };
 
   return (
     <div className="bg-gallery-dark/90 backdrop-blur-md border-l border-white/5 h-full p-6 flex flex-col overflow-y-auto">
-      
+
       {/* Header */}
       <div className="mb-8">
         <span className="text-xs font-bold text-gallery-accent uppercase tracking-widest">Exhibit Control</span>
@@ -71,10 +76,10 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
       {/* Camera Controls */}
       <div className="mb-8 p-4 bg-black/20 rounded-xl border border-white/5">
         <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
           Camera Projection
         </h3>
-        
+
         <Slider
           label="Axis X"
           value={cameraState.x}
@@ -109,15 +114,27 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
         >
           Reset View
         </button>
+
+        {/* Screenshot Button */}
+        <div className="mt-3">
+          <ScreenshotButton onCapture={onScreenshot} className="w-full" />
+        </div>
+
+        {/* Screenshot Preview */}
+        <ScreenshotPreview
+          screenshot={screenshot}
+          onRetake={onScreenshot}
+          className="mt-3"
+        />
       </div>
 
       {/* AI Curator Section */}
       <div className="flex-1 flex flex-col">
         <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="m8 6 4-4 4 4"/><path d="M12 14v10"/><path d="M9 14h6"/><path d="M5 18h14"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" /><path d="m8 6 4-4 4 4" /><path d="M12 14v10" /><path d="M9 14h6" /><path d="M5 18h14" /></svg>
           AI Curator
         </h3>
-        
+
         <div className="flex-1 bg-black/20 rounded-xl border border-white/5 p-4 mb-4 overflow-y-auto min-h-[150px]">
           {curatorLoading ? (
             <div className="flex items-center justify-center h-full text-gallery-accent animate-pulse">
@@ -138,8 +155,8 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
           onClick={onAskCurator}
           disabled={curatorLoading}
           className={`w-full py-3 px-4 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2
-            ${curatorLoading 
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+            ${curatorLoading
+              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-gallery-accent to-yellow-600 text-black hover:from-yellow-400 hover:to-yellow-600 shadow-lg shadow-yellow-900/20'
             }
           `}

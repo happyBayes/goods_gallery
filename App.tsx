@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import SceneContainer from './components/SceneContainer';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import SceneContainer, { SceneContainerHandle } from './components/SceneContainer';
 import ControlsPanel from './components/ControlsPanel';
 import GalleryGrid from './components/GalleryGrid';
 import { ARTIFACTS, DEFAULT_CAMERA_STATE } from './constants';
@@ -13,20 +13,24 @@ const App: React.FC = () => {
   const [cameraState, setCameraState] = useState<CameraState>(DEFAULT_CAMERA_STATE);
   const [isInteractingWithSliders, setIsInteractingWithSliders] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Mobile responsive state
-  
+
   // Curator State
   const [curatorLoading, setCuratorLoading] = useState(false);
   const [curatorResponse, setCuratorResponse] = useState<string | null>(null);
   // Cache curator responses to save API calls
   const [curatorCache, setCuratorCache] = useState<Record<string, string>>({});
 
+  // Screenshot State
+  const sceneRef = useRef<SceneContainerHandle>(null);
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+
   const handleArtifactSelect = (artifact: Artifact) => {
     setCurrentArtifact(artifact);
     setCuratorResponse(curatorCache[artifact.id] || null);
-    
+
     // Close sidebar on mobile after selection
     if (window.innerWidth < 768) {
-        setIsSidebarOpen(false);
+      setIsSidebarOpen(false);
     }
   };
 
@@ -51,7 +55,7 @@ const App: React.FC = () => {
 
   const handleArtifactDelete = (id: string) => {
     const artifactToDelete = artifacts.find(a => a.id === id);
-    
+
     if (artifactToDelete?.fileUrl) {
       URL.revokeObjectURL(artifactToDelete.fileUrl);
     }
@@ -91,19 +95,37 @@ const App: React.FC = () => {
     setTimeout(() => setIsInteractingWithSliders(false), 100);
   }, []);
 
+  const handleScreenshot = useCallback(async () => {
+    if (!sceneRef.current) {
+      console.error('Scene reference not available');
+      return;
+    }
+
+    try {
+      const screenshotData = await sceneRef.current.captureScreenshot({
+        format: 'png',
+        quality: 0.9
+      });
+      setScreenshot(screenshotData);
+      console.log('Screenshot captured successfully');
+    } catch (error) {
+      console.error('Failed to capture screenshot:', error);
+    }
+  }, []);
+
   return (
     <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden bg-gallery-black text-white font-sans">
-      
+
       {/* Left Sidebar: Gallery List */}
       <div className={`
         fixed md:relative z-20 h-full w-64 bg-gallery-black transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:block flex-shrink-0 border-r border-white/5
       `}>
-        <GalleryGrid 
-          artifacts={artifacts} 
-          currentArtifactId={currentArtifact.id} 
-          onSelect={handleArtifactSelect} 
+        <GalleryGrid
+          artifacts={artifacts}
+          currentArtifactId={currentArtifact.id}
+          onSelect={handleArtifactSelect}
           onUpload={handleFileUpload}
           onDelete={handleArtifactDelete}
         />
@@ -111,8 +133,8 @@ const App: React.FC = () => {
 
       {/* Mobile Header / Toggle */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-gallery-black/90 backdrop-blur p-4 border-b border-white/5 flex justify-between items-center">
-        <span className="font-serif font-bold">LUMINA</span>
-        <button 
+        <span className="font-serif font-bold">Jworld</span>
+        <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 text-white bg-white/10 rounded"
         >
@@ -122,10 +144,11 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col md:flex-row relative h-full">
-        
+
         {/* 3D Scene */}
         <div className="flex-1 relative h-[60vh] md:h-full order-1 md:order-1">
-          <SceneContainer 
+          <SceneContainer
+            ref={sceneRef}
             artifact={currentArtifact}
             cameraState={cameraState}
             onCameraChange={(newVal) => setCameraState(prev => ({ ...prev, ...newVal }))}
@@ -135,22 +158,24 @@ const App: React.FC = () => {
 
         {/* Right Sidebar: Controls (Desktop: Right side, Mobile: Bottom scrollable) */}
         <div className="w-full md:w-80 h-[40vh] md:h-full z-10 order-2 md:order-2 flex-shrink-0 relative shadow-2xl">
-            <ControlsPanel 
-              cameraState={cameraState}
-              setCameraState={setCameraState}
-              setIsInteracting={setIsInteractingWithSliders}
-              onReset={handleResetView}
-              onAskCurator={handleAskCurator}
-              curatorLoading={curatorLoading}
-              artifact={currentArtifact}
-              curatorResponse={curatorResponse}
-            />
+          <ControlsPanel
+            cameraState={cameraState}
+            setCameraState={setCameraState}
+            setIsInteracting={setIsInteractingWithSliders}
+            onReset={handleResetView}
+            onAskCurator={handleAskCurator}
+            curatorLoading={curatorLoading}
+            artifact={currentArtifact}
+            curatorResponse={curatorResponse}
+            onScreenshot={handleScreenshot}
+            screenshot={screenshot}
+          />
         </div>
       </div>
 
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-10 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
