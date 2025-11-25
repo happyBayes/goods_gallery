@@ -71,7 +71,11 @@ export enum DesignErrorType {
     RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
     INVALID_PROMPT = 'INVALID_PROMPT',
     STORAGE_ERROR = 'STORAGE_ERROR',
-    NETWORK_ERROR = 'NETWORK_ERROR'
+    NETWORK_ERROR = 'NETWORK_ERROR',
+    TIMEOUT_ERROR = 'TIMEOUT_ERROR',
+    AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
+    CONTENT_POLICY_ERROR = 'CONTENT_POLICY_ERROR',
+    QUOTA_EXCEEDED = 'QUOTA_EXCEEDED'
 }
 
 /**
@@ -133,6 +137,39 @@ export interface PromptInputProps {
     maxLength?: number;
     placeholder?: string;
     suggestions?: string[];
+    showExamples?: boolean;
+    artifactTitle?: string;
+}
+
+/**
+ * Props for PromptExamples component
+ */
+export interface PromptExamplesProps {
+    onSelectExample: (example: string) => void;
+    currentPrompt: string;
+    artifactTitle?: string;
+}
+
+/**
+ * Prompt template interface
+ */
+export interface PromptTemplate {
+    id: string;
+    name: string;
+    description: string;
+    template: string;
+    category: string;
+    parameters?: string[];
+}
+
+/**
+ * Prompt category interface
+ */
+export interface PromptCategory {
+    id: string;
+    name: string;
+    icon: string;
+    examples: string[];
 }
 
 /**
@@ -141,6 +178,14 @@ export interface PromptInputProps {
 export interface DesignStyleSelectorProps {
     selected: DesignStyle;
     onChange: (style: DesignStyle) => void;
+}
+
+/**
+ * Props for AspectRatioSelector component
+ */
+export interface AspectRatioSelectorProps {
+    selected: string;
+    onChange: (ratio: string) => void;
 }
 
 /**

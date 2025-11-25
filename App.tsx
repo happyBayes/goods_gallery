@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import SceneContainer, { SceneContainerHandle } from './components/SceneContainer';
 import ControlsPanel from './components/ControlsPanel';
 import GalleryGrid from './components/GalleryGrid';
+import CreativeDesignPanel from './components/CreativeDesignPanel';
 import { ARTIFACTS, DEFAULT_CAMERA_STATE } from './constants';
 import { Artifact, CameraState, ArtifactType } from './types';
 import { generateCuratorInsight } from './services/geminiService';
@@ -23,6 +24,9 @@ const App: React.FC = () => {
   // Screenshot State
   const sceneRef = useRef<SceneContainerHandle>(null);
   const [screenshot, setScreenshot] = useState<string | null>(null);
+
+  // Creative Design Panel State
+  const [isDesignPanelOpen, setIsDesignPanelOpen] = useState(false);
 
   const handleArtifactSelect = (artifact: Artifact) => {
     setCurrentArtifact(artifact);
@@ -180,6 +184,41 @@ const App: React.FC = () => {
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
+
+      {/* Creative Design Panel Toggle Button */}
+      <button
+        onClick={() => setIsDesignPanelOpen(true)}
+        className="fixed bottom-6 right-6 z-30 p-4 bg-gradient-to-r from-gallery-accent to-yellow-600 text-black rounded-full shadow-2xl shadow-yellow-900/50 hover:shadow-yellow-900/70 hover:scale-110 transition-all duration-300 group"
+        aria-label="打开 AI 文创设计工作台"
+        title="AI 文创设计"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="group-hover:rotate-12 transition-transform"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" y1="19" x2="12" y2="22" />
+        </svg>
+        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+      </button>
+
+      {/* Creative Design Panel */}
+      <CreativeDesignPanel
+        artifact={currentArtifact}
+        isOpen={isDesignPanelOpen}
+        onClose={() => setIsDesignPanelOpen(false)}
+        screenshot={screenshot}
+        onCaptureScreenshot={handleScreenshot}
+      />
     </div>
   );
 };
